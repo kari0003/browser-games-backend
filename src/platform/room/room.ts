@@ -8,22 +8,20 @@ export enum RoomStatus {
 }
 
 export class Room {
-  public connections: Connection[] = [];
-  constructor(public readonly id = v4(), public status = RoomStatus.LOBBY) {}
+  public connections: string[] = [];
+  public readonly id = v4();
+  public status = RoomStatus.LOBBY;
+  constructor(public host: string) {}
 
   deleteRoom() {
     this.connections.forEach(this.leave);
   }
 
-  join(c: Connection) {
+  join(c: string) {
     this.connections.push(c);
   }
 
-  leave(leaver: Connection) {
-    this.connections.map((c) => {
-      if (c.id === leaver.id) {
-        c.disconnect();
-      }
-    });
+  leave(leaver: string) {
+    this.connections.filter((c) => c !== leaver);
   }
 }
