@@ -1,7 +1,7 @@
-import { v4 } from 'uuid';
+import { Socket } from 'socket.io';
 
-export class Connection {
-  constructor(public readonly id = v4()) {}
+export class Player {
+  constructor(public readonly socket: Socket) {}
 
   public disconnect() {
     console.log('disconnected');
