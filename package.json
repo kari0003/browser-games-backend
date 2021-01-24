@@ -37,8 +37,8 @@
   "dependencies": {
     "convict": "^6.0.0",
     "dotenv": "^8.2.0",
-    "fastify": "^2.14.1",
-    "socket.io": "^2.3.0",
+    "fastify": "^2.15.1",
+    "socket.io": "^2.4.0",
     "uuid": "^8.1.0"
   }
 }
