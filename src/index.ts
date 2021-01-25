@@ -4,6 +4,7 @@ import { config } from './config';
 export const main = () => {
   const server = getSocketServer();
 
+  console.log('startup, listening on', config.port);
   server.listen(config.port);
 };
 

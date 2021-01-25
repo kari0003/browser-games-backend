@@ -7,6 +7,7 @@ import { Player } from './platform/connection/connection';
 const rooms: { [key: string]: Room } = {};
 
 function socketHandler(socket: Socket) {
+  console.log('received connection', socket.id);
   const player = new Player(socket);
 
   const s = socket;
