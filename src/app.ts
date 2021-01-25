@@ -31,7 +31,10 @@ function socketHandler(socket: Socket) {
 }
 
 export function getSocketServer() {
-  const io = SocketIo();
+  const io = SocketIo({cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }});
 
   io.on('connection', socketHandler);
 
