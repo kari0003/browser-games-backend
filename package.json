@@ -8,8 +8,8 @@
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
-    "start:buildt": "node ./build/index.js",
-    "start": "ts-node-dev --ignore-watch node_modules --require dotenv/config src/index.ts"
+    "start": "node ./build/index.js",
+    "start:dev": "ts-node-dev --ignore-watch node_modules --require dotenv/config src/index.ts"
   },
   "repository": {
     "type": "git",
