@@ -10,7 +10,7 @@ export function socketHandler(socket: Socket) {
   const s = socket;
   s.on('createRoom', (roomName: string) => {
     const id = getRooms().length;
-    const room: Room = {name: roomName, id, status: RoomStatus.LOBBY};
+    const room: Room = { name: roomName, id, status: RoomStatus.LOBBY };
 
     pushRoom(room);
 
@@ -27,7 +27,12 @@ export function socketHandler(socket: Socket) {
     }
     s.to(`room_${room.id}`).emit('nudge', room.status);
   });
-  
+
+  s.on('chatMessage', (chatMessage: { name: string; message: string }) => {
+    console.log('recevied message lol');
+    s.emit('chatMessage', chatMessage);
+  });
+
   s.on('listRooms', () => {
     const rooms = getRooms();
     s.emit('listRoomsReply', rooms);
