@@ -1,1 +1,45 @@
-{"rooms": [{"id": 0, "name": "Hiper Kamra", "status": "lobby"}]}
+{
+    "rooms": [
+        {
+            "id": 0,
+            "name": "Hiper Kamra",
+            "status": "lobby",
+            "messages": [
+          ]
+        },
+        {
+            "name": "Purgatory",
+            "id": 1,
+            "status": "lobby",
+            "messages": [
+                {
+                    "name": "Főnökúr",
+                    "message": "as"
+                },
+                {
+                    "name": "Főnökúr",
+                    "message": "df"
+                },
+                {
+                    "name": "Főnökúr",
+                    "message": "dher"
+                }
+            ]
+        },
+        {
+            "name": "Sokamra",
+            "id": 2,
+            "status": "lobby",
+            "messages": [
+                {
+                    "name": "Főnökúr",
+                    "message": "bsssss"
+                },
+                {
+                    "name": "Főnökúr",
+                    "message": "asda"
+                }
+            ]
+        }
+    ]
+}
