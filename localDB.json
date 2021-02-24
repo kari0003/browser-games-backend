@@ -5,25 +5,13 @@
             "name": "Hiper Kamra",
             "status": "lobby",
             "messages": [
-          ]
+            ]
         },
         {
             "name": "Purgatory",
             "id": 1,
             "status": "lobby",
             "messages": [
-                {
-                    "name": "Főnökúr",
-                    "message": "as"
-                },
-                {
-                    "name": "Főnökúr",
-                    "message": "df"
-                },
-                {
-                    "name": "Főnökúr",
-                    "message": "dher"
-                }
             ]
         },
         {
@@ -31,14 +19,6 @@
             "id": 2,
             "status": "lobby",
             "messages": [
-                {
-                    "name": "Főnökúr",
-                    "message": "bsssss"
-                },
-                {
-                    "name": "Főnökúr",
-                    "message": "asda"
-                }
             ]
         }
     ]

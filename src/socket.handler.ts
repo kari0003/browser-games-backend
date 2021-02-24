@@ -1,68 +1,32 @@
 import { Socket } from 'socket.io';
 import { Player } from './platform/connection/connection';
-import { getRoomByName, getRooms, pushRoom, set } from './platform/db/db';
-import { Room, RoomStatus } from './platform/room/room';
+import { getRoomByName, getRooms, set } from './platform/db/db';
+import { registerSocketHandlerFactory } from './platform/socketHandler/registerSocketHandler';
+import { createRoomHandler, joinRoomHandler, leaveRoomHandler } from './platform/room/roomSocketHandler';
+
+export function joinChannel(socket: Socket, channel: string, replyPayload: unknown) {
+  console.log(`joined s ${socket.id} to ${channel}`);
+  socket.join(channel);
+  socket.emit('joinChannelReply', replyPayload);
+}
+
+export function leaveChannel(socket: Socket, channel: string, replyPayload: unknown) {
+  socket.leave(channel);
+  console.log(`left s ${socket.id} from ${channel}`);
+  socket.emit('leaveChannelReply', replyPayload);
+}
 
 export function socketHandler(socket: Socket) {
   console.log('received connection', socket.id);
   const player = new Player(socket);
 
   const s = socket;
-  s.on('createRoom', (roomName: string) => {
-    const id = getRooms().length;
 
-    const existingRoom = getRoomByName(roomName);
-    if (existingRoom) {
-      console.log('found existing room', roomName);
+  const register = registerSocketHandlerFactory(s);
 
-      s.join(`room_${existingRoom.id}`);
-      console.log(`joined s ${s.id} to ${existingRoom.id}`);
-      s.emit('joinRoomReply', { room: existingRoom });
-      return;
-    }
-
-    const room: Room = { name: roomName, id, status: RoomStatus.LOBBY, messages: [] };
-    pushRoom(room);
-
-    s.join(`room_${room.id}`);
-    console.log(`joined s ${s.id} to ${room.id}`);
-    s.emit('joinRoomReply', { room });
-  });
-
-  s.on('leaveRoom', (roomName: string) => {
-    const room = getRoomByName(roomName);
-    if (!room) {
-      console.log('couldnt find room', roomName);
-      s.emit('roomNotFound', `No such room with id ${roomName}`);
-      return;
-    }
-
-    s.leave(`room_${room.id}`);
-    console.log(`left s ${s.id} from ${room.id}`);
-  });
-
-  s.on('nudgeRoom', (roomName: string) => {
-    const room = getRoomByName(roomName);
-    if (!room) {
-      console.log('couldnt find room', roomName);
-      s.emit('roomNotFound', `No such room with id ${roomName}`);
-      return;
-    }
-    s.to(`room_${room.id}`).emit('nudge', room.status);
-  });
-
-  s.on('joinRoom', (payload: { roomName: string }) => {
-    const room = getRoomByName(payload.roomName);
-    if (!room) {
-      console.log('couldnt find room', payload);
-      s.emit('roomNotFound', `No such room with id ${payload.roomName}`);
-      return;
-    }
-
-    s.join(`room_${room.id}`);
-    console.log(`joined s ${s.id} to ${room.id}`);
-    s.emit('joinRoomReply', { room });
-  });
+  register('createRoom', createRoomHandler);
+  register('leaveRoom', leaveRoomHandler);
+  register('joinRoom', joinRoomHandler);
 
   s.on('chatMessage', (payload: { roomName: string; chatMessage: { name: string; message: string } }) => {
     const room = getRoomByName(payload.roomName);
