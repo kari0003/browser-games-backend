@@ -31,10 +31,10 @@ export function pushRoom(room: Room) {
   return db.push('/rooms[]', room, true);
 }
 
-export function set(path: string, value: unknown) {
+export function set<T>(path: string, value: T) {
   db.push(path, value, true);
 }
 
-export function get(path: string): unknown {
+export function get<T>(path: string): T {
   return db.getData(path);
 }

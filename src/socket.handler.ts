@@ -3,6 +3,7 @@ import { Player } from './platform/connection/connection';
 import { getRoomByName, getRooms, set } from './platform/db/db';
 import { registerSocketHandlerFactory } from './platform/socketHandler/registerSocketHandler';
 import { createRoomHandler, joinRoomHandler, leaveRoomHandler } from './platform/room/roomSocketHandler';
+import { upsertPlayerHandler, getPlayerHandler } from './platform/player/playerSocketHandler';
 
 export function joinChannel(socket: Socket, channel: string, replyPayload: unknown) {
   console.log(`joined s ${socket.id} to ${channel}`);
@@ -27,6 +28,9 @@ export function socketHandler(socket: Socket) {
   register('createRoom', createRoomHandler);
   register('leaveRoom', leaveRoomHandler);
   register('joinRoom', joinRoomHandler);
+
+  register('setProfile', upsertPlayerHandler);
+  register('getProfile', getPlayerHandler);
 
   s.on('chatMessage', (payload: { roomName: string; chatMessage: { name: string; message: string } }) => {
     const room = getRoomByName(payload.roomName);
