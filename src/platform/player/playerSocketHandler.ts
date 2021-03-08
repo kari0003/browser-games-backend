@@ -17,7 +17,7 @@ const findPlayer = (id: string): Player => {
 
 export const upsertPlayerHandler: Handler<{ name?: string }> = (s, { name }) => {
   const player = { id: s.id, name, lastUpdated: new Date() };
-  set('/players/${s.id}', player);
+  set(`/players/${s.id}`, player);
 
   s.emit('profileReply', player);
 };

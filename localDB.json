@@ -4,22 +4,26 @@
             "id": 0,
             "name": "Hiper Kamra",
             "status": "lobby",
-            "messages": [
-            ]
+            "messages": [],
+            "players": []
         },
         {
             "name": "Purgatorony",
             "id": 1,
             "status": "lobby",
             "messages": [
-            ]
+            ],
+            "players": []
         },
         {
             "name": "Sokamra",
             "id": 2,
             "status": "lobby",
-            "messages": [
-            ]
+            "messages": [],
+            "players": []
         }
-    ]
+    ],
+    "players": {
+        
+    }
 }

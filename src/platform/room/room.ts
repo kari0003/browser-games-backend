@@ -1,6 +1,4 @@
-import { v4 } from 'uuid';
-import { Player } from '../connection/connection';
-import { Server } from 'socket.io';
+import { Player } from '../player/playerSocketHandler';
 
 export enum RoomStatus {
   LOBBY = 'lobby',
@@ -15,6 +13,7 @@ export interface Room {
   id: number;
   status: RoomStatus;
   messages: ChatMessage[];
+  players: Player[];
 }
 
 // export class Room {

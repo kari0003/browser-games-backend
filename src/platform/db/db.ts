@@ -31,6 +31,10 @@ export function pushRoom(room: Room) {
   return db.push('/rooms[]', room, true);
 }
 
+export function removeRoom(id: number) {
+  return db.delete(`/rooms[${id}]`);
+}
+
 export function set<T>(path: string, value: T) {
   db.push(path, value, true);
 }
