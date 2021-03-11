@@ -11,6 +11,13 @@ const convictConfig = convict({
     env: 'PORT',
     arg: 'port',
   },
+  dbPath: {
+    doc: 'json database file path',
+    format: String,
+    default: 'db.json',
+    env: 'DB_PATH',
+    arg: 'dbPath',
+  },
 });
 
 convictConfig.validate({ allowed: 'strict' });

@@ -1,15 +1,14 @@
 import { Player } from '../connection/connection';
 import { Room } from '../room/room';
 import { JsonDB } from 'node-json-db';
-
-const JSON_DB_FILE = 'localDB';
+import { config } from '../../config';
 
 export type DBSchema = {
   players: Player[];
   rooms: Room[];
 };
 
-const db = new JsonDB(JSON_DB_FILE, true, true);
+const db = new JsonDB(config.dbPath, true, true);
 
 export function getRooms(): Room[] {
   return db.getData('/rooms');
