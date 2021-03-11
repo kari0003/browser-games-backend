@@ -15,7 +15,7 @@ export const registerSocketHandlerFactory = (socket: Socket) => {
         return handler(socket, payload);
       } catch (err) {
         if (err instanceof UserError) {
-          console.error('UserError', err);
+          console.error('UserError', err.code, err.message);
           return socket.emit('error', { errorCode: err.code, errorMessage: err.message });
         }
         console.error(err);

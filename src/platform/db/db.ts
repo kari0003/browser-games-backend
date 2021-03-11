@@ -38,6 +38,14 @@ export function set<T>(path: string, value: T) {
   db.push(path, value, true);
 }
 
-export function get<T>(path: string): T {
-  return db.getData(path);
+export function get<T>(path: string, error?: Error): T {
+  try {
+    return db.getData(path);
+  } catch (err) {
+    console.error('dbGetError', err.message);
+    if (error) {
+      throw error;
+    }
+    throw err;
+  }
 }

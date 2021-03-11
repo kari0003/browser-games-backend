@@ -8,11 +8,7 @@ export interface Player {
 }
 
 const findPlayer = (id: string): Player => {
-  const player = get<Player>(`/players/${id}`);
-  if (!player) {
-    throw new UserError('roomNotFound', `No player with id ${id}`);
-  }
-  return player;
+  return get<Player>(`/players/${id}`, new UserError('playerNotFound', `No player with id ${id}`));
 };
 
 export const upsertPlayerHandler: Handler<{ name?: string }> = (s, { name }) => {

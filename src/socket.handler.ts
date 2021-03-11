@@ -1,8 +1,12 @@
 import { Socket } from 'socket.io';
-import { Player } from './platform/connection/connection';
 import { getRoomByName, getRooms, set } from './platform/db/db';
 import { registerSocketHandlerFactory } from './platform/socketHandler/registerSocketHandler';
-import { createRoomHandler, joinRoomHandler, leaveRoomHandler } from './platform/room/roomSocketHandler';
+import {
+  createRoomHandler,
+  joinRoomHandler,
+  leaveRoomHandler,
+  getRoomChannel,
+} from './platform/room/roomSocketHandler';
 import { upsertPlayerHandler, getPlayerHandler } from './platform/player/playerSocketHandler';
 
 export function joinChannel(socket: Socket, channel: string, replyPayload: unknown) {
@@ -19,8 +23,6 @@ export function leaveChannel(socket: Socket, channel: string, replyPayload: unkn
 
 export function socketHandler(socket: Socket) {
   console.log('received connection', socket.id);
-  const player = new Player(socket);
-
   const s = socket;
 
   const register = registerSocketHandlerFactory(s);
@@ -42,7 +44,7 @@ export function socketHandler(socket: Socket) {
 
     set(`/rooms/${room.id}/messages`, [...room.messages, payload.chatMessage]);
 
-    s.nsp.to(`room_${room.id}`).emit('chatMessageOut', payload.chatMessage);
+    s.nsp.to(getRoomChannel(room)).emit('chatMessageOut', payload.chatMessage);
   });
 
   s.on('listRooms', () => {
