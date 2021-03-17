@@ -35,9 +35,9 @@ export const initialState: GameState = {
 };
 
 export const setState = (state: GameState) => {
-  set(`/games[${state.roomId}]`, state);
+  set(`/games/${state.roomId}`, state);
 };
 
 export const getState = (roomId: string): GameState => {
-  return get(`/games[${roomId}]`) as GameState;
+  return get(`/games/${roomId}`);
 };
