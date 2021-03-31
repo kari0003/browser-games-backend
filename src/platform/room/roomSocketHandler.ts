@@ -34,6 +34,9 @@ export const createRoomHandler: Handler<{ roomName: string }> = (s, { roomName }
   const room: Room = { name: roomName, id, status: RoomStatus.LOBBY, messages: [], players: [get(`/players/${s.id}`)] };
   pushRoom(room);
 
+  // Tell that room was actually created
+  s.emit('createRoomReply', { room });
+
   set(`/rooms[${room.id}]`, { ...room, players: [...room.players, get(`/players/${s.id}`)] });
   joinChannel(s, getRoomChannel(room), { room });
 };

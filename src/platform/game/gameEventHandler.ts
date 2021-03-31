@@ -25,10 +25,15 @@ export const initGameHandler: Handler<{ game: string; roomId: number }> = (s, { 
   if (game === 'parasztactivity') {
     return parasztactivityInitializer(s, { roomId });
   }
+  console.log('could not find game type:', roomId, game);
+  throw new UserError('gameTypeNotFound', 'Could not find the game type!');
 };
 
-export const getGameState: Handler<{ game: string; roomId: number }> = (s, { game, roomId }) => {
+export const getGameStateHandler: Handler<{ game: string; roomId: number }> = (s, { game, roomId }) => {
   if (game === 'parasztactivity') {
     return getParasztactivityState(s, roomId);
   }
+
+  console.log('could not find game type:', roomId, game);
+  throw new UserError('gameTypeNotFound', 'Could not find the game type!');
 };
