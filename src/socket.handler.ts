@@ -7,7 +7,12 @@ import {
   leaveRoomHandler,
   getRoomChannel,
 } from './platform/room/roomSocketHandler';
-import { upsertPlayerHandler, getPlayerHandler } from './platform/player/playerSocketHandler';
+import {
+  upsertPlayerHandler,
+  getPlayerHandler,
+  removePlayer,
+  handshakeHandler,
+} from './platform/player/playerSocketHandler';
 import { gameEventHandler, getGameStateHandler, initGameHandler } from './platform/game/gameEventHandler';
 
 export function joinChannel(socket: Socket, channel: string, replyPayload: unknown) {
@@ -26,14 +31,21 @@ export function socketHandler(socket: Socket) {
   console.log('received connection', socket.id);
   const s = socket;
 
+  s.on('disconnect', () => {
+    console.log('Disconnected ', socket.id);
+    removePlayer(socket.id);
+  });
+
   const register = registerSocketHandlerFactory(s);
+
+  register('handshake', handshakeHandler);
+
+  register('setProfile', upsertPlayerHandler);
+  register('getProfile', getPlayerHandler);
 
   register('createRoom', createRoomHandler);
   register('leaveRoom', leaveRoomHandler);
   register('joinRoom', joinRoomHandler);
-
-  register('setProfile', upsertPlayerHandler);
-  register('getProfile', getPlayerHandler);
 
   register('initGame', initGameHandler);
   register('gameEvent', gameEventHandler);

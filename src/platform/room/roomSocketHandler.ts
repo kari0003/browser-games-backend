@@ -22,29 +22,35 @@ const broadcastRoomUpdate = (s: Socket, room: Room) => {
   s.to(getRoomChannel(room)).emit('updateRoom', { room: upToDateRoom });
 };
 
-export const createRoomHandler: Handler<{ roomName: string }> = (s, { roomName }) => {
+export const createRoomHandler: Handler<{ roomName: string; token: string }> = (s, { roomName, token }) => {
   const id = getRooms().length;
 
   const existingRoom = getRoomByName(roomName);
   if (existingRoom) {
-    joinRoomHandler(s, { roomName: existingRoom.name });
+    joinRoomHandler(s, { roomName: existingRoom.name, token });
     return;
   }
 
-  const room: Room = { name: roomName, id, status: RoomStatus.LOBBY, messages: [], players: [get(`/players/${s.id}`)] };
+  const room: Room = {
+    name: roomName,
+    id,
+    status: RoomStatus.LOBBY,
+    messages: [],
+    players: [get(`/players/${token}`)],
+  };
   pushRoom(room);
 
   // Tell that room was actually created
   s.emit('createRoomReply', { room });
 
-  set(`/rooms[${room.id}]`, { ...room, players: [...room.players, get(`/players/${s.id}`)] });
+  set(`/rooms[${room.id}]`, { ...room, players: [...room.players, get(`/players/${token}`)] });
   joinChannel(s, getRoomChannel(room), { room });
 };
 
-export const leaveRoomHandler: Handler<{ roomName: string }> = (s, { roomName }) => {
+export const leaveRoomHandler: Handler<{ roomName: string; token: string }> = (s, { roomName, token }) => {
   const room = findRoom(roomName);
 
-  set(`/rooms[${room.id}]`, { ...room, players: [...room.players.filter((p) => p.id !== s.id)] });
+  set(`/rooms[${room.id}]`, { ...room, players: [...room.players.filter((p) => p.token !== token)] });
   console.log('set players to', get(`/rooms/${room.id}/players`));
   leaveChannel(s, getRoomChannel(room), {});
   broadcastRoomUpdate(s, room);
@@ -56,10 +62,10 @@ export const leaveRoomHandler: Handler<{ roomName: string }> = (s, { roomName })
   }
 };
 
-export const joinRoomHandler: Handler<{ roomName: string }> = (s, { roomName }) => {
+export const joinRoomHandler: Handler<{ roomName: string; token: string }> = (s, { roomName, token }) => {
   const room = findRoom(roomName);
 
-  const player = get(`/players/${s.id}`, new UserError('playerNotFound', 'Set Player Profile first!'));
+  const player = get(`/players/${token}`, new UserError('playerNotFound', 'Set Player Profile first!'));
 
   console.log(room, player, [...room.players, player]);
   set(`/rooms/${room.id}/players`, [...room.players, player]);
