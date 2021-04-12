@@ -50,7 +50,7 @@ export const createRoomHandler: Handler<{ roomName: string; token: string }> = (
 export const leaveRoomHandler: Handler<{ roomName: string; token: string }> = (s, { roomName, token }) => {
   const room = findRoom(roomName);
 
-  set(`/rooms[${room.id}]`, { ...room, players: [...room.players.filter((p) => p.token !== token)] });
+  set(`/rooms[${room.id}]`, { ...room, players: [...room.players.filter((p) => p.id !== token)] });
   console.log('set players to', get(`/rooms/${room.id}/players`));
   leaveChannel(s, getRoomChannel(room), {});
   broadcastRoomUpdate(s, room);

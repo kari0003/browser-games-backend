@@ -28,9 +28,9 @@ export const registerPlayerAndSocket = (socketId: string, token: string | undefi
       return newToken;
     }
   } catch (err) {
-    console.log('cannot find player by token', err);
+    console.log('cannot find player by token');
   }
-  db.push(`/players/${newToken}`, { name: 'Átlagos Józsi', token: newToken, sockets: [socketId] });
+  db.push(`/players/${newToken}`, { name: 'Átlagos Józsi', id: newToken, sockets: [socketId] });
   console.log(`registered new socket ${socketId} and new player with: ${newToken}`);
   return newToken;
 };
