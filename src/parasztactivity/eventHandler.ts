@@ -116,6 +116,10 @@ const getRandomId = (words: unknown[]): number => {
   return (Math.random() * words.length) % words.length;
 };
 
+export const getHatWordCount = (state: GameState): number => {
+  return state.isRoundInProgress ? state.hatWords.length : state.allWords.length;
+};
+
 const toPublicState = (state: GameState) => {
   return {
     roomId: state.roomId,
@@ -123,5 +127,6 @@ const toPublicState = (state: GameState) => {
     currentTurnStart: state.currentTurnStart,
     settings: state.settings,
     scores: state.scores,
+    hatWordCount: getHatWordCount(state),
   };
 };

@@ -67,7 +67,7 @@ export const joinRoomHandler: Handler<{ roomName: string; token: string }> = (s,
 
   const player = get(`/players/${token}`, new UserError('playerNotFound', 'Set Player Profile first!'));
 
-  console.log(room, player, [...room.players, player]);
+  console.log('join room', room, player);
   set(`/rooms/${room.id}/players`, [...room.players, player]);
   joinChannel(s, getRoomChannel(room), { room });
   broadcastRoomUpdate(s, room);

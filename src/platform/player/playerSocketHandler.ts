@@ -23,8 +23,10 @@ export const registerPlayerAndSocket = (socketId: string, token: string | undefi
   try {
     const existingPlayer = get<Player>(`/players/${newToken}`);
     if (existingPlayer) {
-      db.push(`/players/${newToken}`, { ...existingPlayer, sockets: [...existingPlayer.sockets, socketId] });
-      console.log(`registered new socket ${socketId} for ${newToken}`);
+      if (existingPlayer.sockets.findIndex((savedSocket) => savedSocket === socketId) < 0) {
+        db.push(`/players/${newToken}`, { ...existingPlayer, sockets: [...existingPlayer.sockets, socketId] });
+        console.log(`registered new socket ${socketId} for ${newToken}`);
+      }
       return newToken;
     }
   } catch (err) {
