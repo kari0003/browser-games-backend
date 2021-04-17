@@ -7,7 +7,7 @@ import { AddWordPayload, GuessWordPayload, StartTurnPayload } from './gameEvents
 import { GameState, getState, initialState, setState } from './gameState';
 
 export const parasztactivityInitializer = (s: Socket, { roomId }: { roomId: number }) => {
-  const state = initialState;
+  const state = { ...initialState };
   state.roomId = roomId;
   return setState(state);
 };
@@ -19,13 +19,13 @@ export const getParasztactivityState = (s: Socket, roomId: number) => {
 };
 
 export const broadcastGameState = (s: Socket, state: GameState) => {
-  console.log('broadcastGameState', { roomId: state.roomId });
   const room = getRoom(state.roomId);
+  console.log('broadcastGameState', state.roomId);
   if (!room) {
     throw new UserError('roomNotFound', 'room for game does not exist');
   }
   const gameState = toPublicState(state);
-  s.to(getRoomChannel(room)).emit('gameState', { gameState });
+  s.nsp.to(getRoomChannel(room)).emit('gameState', { gameState });
 };
 
 export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
