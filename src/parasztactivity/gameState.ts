@@ -4,7 +4,7 @@ export type Word = { word: string; submittedBy: string };
 
 export type GameState = {
   roomId: number;
-  isGameStatrted: boolean;
+  isGameStarted: boolean;
   isTurnInProgress: boolean;
   isRoundInProgress: boolean;
   currentPlayer: string | null;
@@ -22,7 +22,7 @@ export type GameState = {
 
 export const initialState: GameState = {
   roomId: -1,
-  isGameStatrted: false,
+  isGameStarted: false,
   isTurnInProgress: false,
   isRoundInProgress: false,
   currentPlayer: null,

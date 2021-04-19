@@ -104,6 +104,9 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
       return;
     }
     state.currentPlayer = payload.playerId;
+    state.isGameStarted = true;
+    state.isRoundInProgress = true;
+    state.isTurnInProgress = true;
     state.currentTurnStart = Date.now();
     broadcastGameState(s, state);
     return setState(state);
@@ -125,6 +128,9 @@ const toPublicState = (state: GameState) => {
     roomId: state.roomId,
     currentPlayer: state.currentPlayer,
     currentTurnStart: state.currentTurnStart,
+    isGameStarted: state.isGameStarted,
+    isRoundInProgress: state.isRoundInProgress,
+    isTurnInProgress: state.isTurnInProgress,
     settings: state.settings,
     scores: state.scores,
     hatWordCount: getHatWordCount(state),
