@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io';
-import { getRoom } from '../platform/db/db';
+import { getRoom, get } from '../platform/db/db';
 import { GameEvent } from '../platform/game/gameEventHandler';
+import { Room } from '../platform/room/room';
 import { getRoomChannel } from '../platform/room/roomSocketHandler';
 import { UserError } from '../platform/socketHandler/registerSocketHandler';
 import { AddWordPayload, GuessWordPayload, StartTurnPayload } from './gameEvents';
@@ -29,7 +30,10 @@ export const broadcastGameState = (s: Socket, state: GameState) => {
 };
 
 export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
-  const state = getState(event.roomId);
+  const state = { ...getState(event.roomId) };
+
+  const room = get<Room>(`/rooms[${state.roomId}]`);
+
   if (event.eventType === 'addWord') {
     const payload = event.payload as AddWordPayload;
     state.allWords.push({ submittedBy: payload.playerId, word: payload.word });
@@ -67,7 +71,9 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
       state.currentWord = null;
       state.scores[payload.playerId] = 1 + (state.scores[payload.playerId] || 0);
       if (state.hatWords.length === 0) {
-        console.log('end turn');
+        console.log('no Words, end turn');
+        state.isTurnInProgress = false;
+        state.isRoundInProgress = false;
       }
       broadcastGameState(s, state);
       return setState(state);
@@ -89,29 +95,68 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
   }
 
   if (event.eventType === 'endTurn') {
-    if (state.currentPlayer) {
+    if (state.isTurnInProgress) {
       state.currentPlayer = null;
       state.currentTurnStart = null;
+      state.isTurnInProgress = false;
+      if (state.currentWord) {
+        state.hatWords.push(state.currentWord);
+      }
       broadcastGameState(s, state);
       return setState(state);
     }
   }
 
-  if (event.eventType === 'startTurn') {
-    const payload = event.payload as StartTurnPayload;
-    if (state.currentPlayer) {
-      console.log('Turn already started!');
-      return;
+  if (event.eventType === 'startGame') {
+    if (state.isGameStarted) {
+      throw new UserError('illegalAction', 'Game already started!');
     }
-    state.currentPlayer = payload.playerId;
     state.isGameStarted = true;
-    state.isRoundInProgress = true;
-    state.isTurnInProgress = true;
-    state.currentTurnStart = Date.now();
+    state.isRoundInProgress = false;
+    state.isTurnInProgress = false;
+    state.scores = {};
+
+    state.roundRobinIndex = 0;
+    state.hatWords = [...state.allWords];
+    state.currentPlayer = room.players[state.roundRobinIndex].id;
+
     broadcastGameState(s, state);
     return setState(state);
   }
 
+  if (event.eventType === 'startRound') {
+    if (state.isRoundInProgress) {
+      throw new UserError('illegalAction', 'Round already started!');
+    }
+    state.isRoundInProgress = true;
+    state.isTurnInProgress = false;
+    state.hatWords = [...state.allWords];
+
+    state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
+    state.currentPlayer = room.players[state.roundRobinIndex].id;
+
+    broadcastGameState(s, state);
+    return setState(state);
+  }
+
+  if (event.eventType === 'startTurn') {
+    if (state.isTurnInProgress) {
+      throw new UserError('illegalAction', 'Turn already started!');
+    }
+    state.isTurnInProgress = true;
+    state.currentTurnStart = Date.now();
+
+    state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
+    state.currentPlayer = room.players[state.roundRobinIndex].id;
+
+    setTimeout(() => {
+      console.log('turn over timeout!');
+      state.isTurnInProgress = false;
+    }, state.settings.turnLengthSeconds);
+
+    broadcastGameState(s, state);
+    return setState(state);
+  }
   // TODO replace with reducer
 };
 

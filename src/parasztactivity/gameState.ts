@@ -8,6 +8,7 @@ export type GameState = {
   isTurnInProgress: boolean;
   isRoundInProgress: boolean;
   currentPlayer: string | null;
+  roundRobinIndex: number;
   currentWord: Word | null;
   currentTurnStart: number | null;
   allWords: Word[];
@@ -26,6 +27,7 @@ export const initialState: GameState = {
   isTurnInProgress: false,
   isRoundInProgress: false,
   currentPlayer: null,
+  roundRobinIndex: 0,
   currentWord: null,
   currentTurnStart: null,
   allWords: [],

@@ -1,6 +1,15 @@
 import { GameEvent } from '../platform/game/gameEventHandler';
 
-export type EventTypes = 'addWord' | 'drawWord' | 'putBackWord' | 'guessWord' | 'resetGame' | 'endTurn' | 'startTurn';
+export type EventTypes =
+  | 'addWord'
+  | 'drawWord'
+  | 'putBackWord'
+  | 'guessWord'
+  | 'resetGame'
+  | 'endTurn'
+  | 'startTurn'
+  | 'startRound'
+  | 'startGame';
 
 export type Payloads =
   | AddWordPayload
@@ -36,6 +45,8 @@ export type GuessWordPayload = {
 
 export type EndTurnPayload = {};
 
-export type StartTurnPayload = {
-  playerId: string;
-};
+export type StartGamePayload = {};
+
+export type StartRoundPayload = {};
+
+export type StartTurnPayload = {};
