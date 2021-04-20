@@ -10,8 +10,9 @@ import {
 import {
   upsertPlayerHandler,
   getPlayerHandler,
-  removePlayer,
+  removePlayerSocket,
   handshakeHandler,
+  findPlayerBySocket,
 } from './platform/player/playerSocketHandler';
 import { gameEventHandler, getGameStateHandler, initGameHandler } from './platform/game/gameEventHandler';
 
@@ -33,7 +34,7 @@ export function socketHandler(socket: Socket) {
 
   s.on('disconnect', () => {
     console.log('Disconnected ', socket.id);
-    removePlayer(socket.id);
+    removePlayerSocket(socket.id);
   });
 
   const register = registerSocketHandlerFactory(s);

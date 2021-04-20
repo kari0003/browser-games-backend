@@ -1,21 +1,40 @@
 import { Handler, UserError } from '../socketHandler/registerSocketHandler';
-import { set, get, db } from '../db/db';
+import { set, get, db, getRooms } from '../db/db';
 import { v4 } from 'uuid';
+import { getRoomChannel } from '../room/roomSocketHandler';
+import { joinChannel } from '../../socket.handler';
+import { Socket } from 'socket.io';
 
 export interface Player {
   id: string;
-  token: string;
   name: string;
   lastUpdated: Date;
   sockets: string[];
 }
 
-const findPlayer = (id: string): Player => {
-  return get<Player>(`/players/${id}`, new UserError('playerNotFound', `No player with id ${id}`));
+export const findPlayerBySocket = (socketId: string): Player => {
+  const players = get<Record<string, Player>>('/players');
+  const found = Object.entries(players).find(([_key, value]) => value.sockets.find((sid) => sid === socketId));
+  if (!found) {
+    throw new UserError('playerNotFound', `No player with socket ${socketId}`);
+  }
+  const [token, foundPlayer] = found;
+  return foundPlayer;
 };
 
-export const removePlayer = (id: string): void => {
-  return db.delete(`/players/${id}`);
+export const removePlayerSocket = (socketId: string): void => {
+  const players = get<Record<string, Player>>('/players');
+  const found = Object.entries(players).find(([_key, value]) => value.sockets.find((sid) => sid === socketId));
+  if (!found) {
+    return;
+  }
+  const [token, foundPlayer] = found;
+  const newSocketIds = foundPlayer.sockets.filter((sid) => sid === socketId);
+  if ((newSocketIds.length = 0)) {
+    db.delete(`/players/${token}`);
+    return;
+  }
+  set(`/players/${token}`, { ...foundPlayer, sockets: newSocketIds });
 };
 
 export const registerPlayerAndSocket = (socketId: string, token: string | undefined) => {
@@ -59,9 +78,25 @@ export const getPlayerHandler: Handler<null> = (s) => {
   s.emit('profileReply', found[1]);
 };
 
+export function joinNeededChannels(socket: Socket, token: string): void {
+  try {
+    const rooms = getRooms();
+    rooms.forEach((room) => {
+      const pId = room.players.findIndex((p) => p.id === token);
+      if (pId > 0) {
+        console.log('found room for handshaking player:', token, room.id);
+        joinChannel(socket, getRoomChannel(room), room);
+      }
+    });
+  } catch (err) {
+    console.log('did not join needed channels:', err);
+  }
+}
+
 export const handshakeHandler: Handler<{ token?: string }> = (s, { token }) => {
   console.log('handshaking', s.id);
   const socketId = s.id;
   const responseToken = registerPlayerAndSocket(socketId, token);
+  joinNeededChannels(s, responseToken);
   s.emit('handshakeReply', { token: responseToken });
 };
