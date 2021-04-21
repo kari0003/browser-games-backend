@@ -35,7 +35,7 @@ export const initialState: GameState = {
   settings: {
     minWordPerPlayer: 0,
     maxWordPerPlayer: 3,
-    turnLengthSeconds: 30,
+    turnLengthSeconds: 500,
   },
   scores: {},
 };

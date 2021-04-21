@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io';
 import { getRoom, get } from '../platform/db/db';
 import { GameEvent } from '../platform/game/gameEventHandler';
+import { findPlayerBySocket } from '../platform/player/playerSocketHandler';
 import { Room } from '../platform/room/room';
 import { getRoomChannel } from '../platform/room/roomSocketHandler';
 import { UserError } from '../platform/socketHandler/registerSocketHandler';
@@ -33,6 +34,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
   const state = { ...getState(event.roomId) };
 
   const room = get<Room>(`/rooms[${state.roomId}]`);
+  const player = findPlayerBySocket(s.id);
 
   if (event.eventType === 'addWord') {
     const payload = event.payload as AddWordPayload;
@@ -42,11 +44,13 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
   }
 
   if (event.eventType === 'drawWord') {
-    if (s.id !== state.currentPlayer) {
+    if (player.id !== state.currentPlayer) {
       throw new UserError('illegalAction', 'you are not the current player!');
     }
     if (state.hatWords.length > 0) {
+      console.log('drawing word');
       const index = getRandomId(state.hatWords);
+      console.log(index, state.hatWords);
       state.currentWord = state.hatWords[index];
       state.hatWords = state.hatWords.filter((_, id) => id === index);
       broadcastGameState(s, state);
@@ -56,10 +60,14 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
   }
 
   if (event.eventType === 'putBackWord') {
+    if (player.id !== state.currentPlayer) {
+      throw new UserError('illegalAction', 'you are not the current player!');
+    }
     if (state.currentWord !== null) {
       state.hatWords.push(state.currentWord);
       state.currentWord = null;
       broadcastGameState(s, state);
+      s.emit('putBackWordReply', { word: null });
       return setState(state);
     }
   }
@@ -161,7 +169,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
 };
 
 const getRandomId = (words: unknown[]): number => {
-  return (Math.random() * words.length) % words.length;
+  return Math.floor(Math.random() * words.length) % words.length;
 };
 
 export const getHatWordCount = (state: GameState): number => {
@@ -179,5 +187,6 @@ const toPublicState = (state: GameState) => {
     settings: state.settings,
     scores: state.scores,
     hatWordCount: getHatWordCount(state),
+    roundRobinIndex: state.roundRobinIndex,
   };
 };
