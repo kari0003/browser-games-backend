@@ -1,4 +1,4 @@
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { getRoom, get } from '../platform/db/db';
 import { GameEvent } from '../platform/game/gameEventHandler';
 import { findPlayerBySocket } from '../platform/player/playerSocketHandler';
@@ -12,6 +12,29 @@ export const parasztactivityInitializer = (s: Socket, { roomId }: { roomId: numb
   const state = { ...initialState };
   state.roomId = roomId;
   return setState(state);
+};
+
+export const parasztactivityLoopHandlerFactory = (roomId: number, io: Server) => (): void => {
+  const state = getState(roomId);
+  if (state.isTurnInProgress && state.currentTurnStart) {
+    const elapsedTime = Date.now() - state.currentTurnStart;
+    if (elapsedTime / 1000 > state.settings.turnLengthSeconds) {
+      console.log('turn over, elapsed:', elapsedTime / 1000, state.settings.turnLengthSeconds);
+
+      state.currentPlayer = null;
+      state.currentTurnStart = null;
+      state.isTurnInProgress = false;
+      if (state.currentWord) {
+        state.hatWords = [...state.hatWords, state.currentWord];
+      }
+      const newState = { ...state, currentPlayer: null, currentTurnStart: null, isTurnInProgress: false };
+
+      console.log('broadcast to new');
+      const room = get<Room>(`/rooms[${state.roomId}]`);
+      io.of(getRoomChannel(room)).emit('gameState', newState);
+      return setState(newState);
+    }
+  }
 };
 
 export const getParasztactivityState = (s: Socket, roomId: number) => {
@@ -52,7 +75,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
       const index = getRandomId(state.hatWords);
       console.log(index, state.hatWords);
       state.currentWord = state.hatWords[index];
-      state.hatWords = state.hatWords.filter((_, id) => id === index);
+      state.hatWords = state.hatWords.filter((_, id) => id !== index);
       broadcastGameState(s, state);
       s.emit('drawWordReply', { word: state.currentWord.word });
       return setState(state);
@@ -156,11 +179,6 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
 
     state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
     state.currentPlayer = room.players[state.roundRobinIndex].id;
-
-    setTimeout(() => {
-      console.log('turn over timeout!');
-      state.isTurnInProgress = false;
-    }, state.settings.turnLengthSeconds);
 
     broadcastGameState(s, state);
     return setState(state);

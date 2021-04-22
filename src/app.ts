@@ -1,4 +1,5 @@
 import { Server } from 'socket.io';
+import { initGameLoop } from './platform/game/gameLoop';
 import { socketHandler } from './socket.handler';
 
 export function createSocketServer(server: any) {
@@ -11,4 +12,5 @@ export function createSocketServer(server: any) {
   });
 
   io.on('connection', socketHandler);
+  initGameLoop(io);
 }
