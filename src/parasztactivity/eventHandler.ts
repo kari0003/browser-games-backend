@@ -18,12 +18,14 @@ export const parasztactivityLoopHandlerFactory = (roomId: number, io: Server) =>
   const state = getState(roomId);
   if (state.isTurnInProgress && state.currentTurnStart) {
     const elapsedTime = Date.now() - state.currentTurnStart;
-    if (elapsedTime / 1000 > state.settings.turnLengthSeconds) {
-      console.log('turn over, elapsed:', elapsedTime / 1000, state.settings.turnLengthSeconds);
+    const elapsedSeconds = elapsedTime / 1000;
+    if (elapsedSeconds > state.settings.turnLengthSeconds) {
+      console.log('turn over, elapsed:', elapsedSeconds, state.settings.turnLengthSeconds);
 
       state.currentPlayer = null;
       state.currentTurnStart = null;
       state.isTurnInProgress = false;
+      state.previousTurnEnd = Date.now();
       if (state.currentWord) {
         state.hatWords = [...state.hatWords, state.currentWord];
       }
@@ -33,6 +35,12 @@ export const parasztactivityLoopHandlerFactory = (roomId: number, io: Server) =>
       const room = get<Room>(`/rooms[${state.roomId}]`);
       io.of(getRoomChannel(room)).emit('gameState', newState);
       return setState(newState);
+    }
+  }
+  if (!state.isTurnInProgress && state.previousTurnEnd) {
+    const elapsedTime = Date.now() - state.previousTurnEnd;
+    const elapsedSeconds = elapsedTime / 1000;
+    if (elapsedSeconds > state.settings.betweenTurnSeconds) {
     }
   }
 };
@@ -69,6 +77,9 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
   if (event.eventType === 'drawWord') {
     if (player.id !== state.currentPlayer) {
       throw new UserError('illegalAction', 'you are not the current player!');
+    }
+    if (state.currentWord) {
+      throw new UserError('illegalAction', 'you have already drawn a word!');
     }
     if (state.hatWords.length > 0) {
       console.log('drawing word');
@@ -165,6 +176,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
 
     state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
     state.currentPlayer = room.players[state.roundRobinIndex].id;
+    state.previousTurnEnd = Date.now();
 
     broadcastGameState(s, state);
     return setState(state);

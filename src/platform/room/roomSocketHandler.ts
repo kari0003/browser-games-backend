@@ -43,7 +43,6 @@ export const createRoomHandler: Handler<{ roomName: string; token: string }> = (
   // Tell that room was actually created
   s.emit('createRoomReply', { room });
 
-  set(`/rooms[${room.id}]`, { ...room, players: [...room.players, get(`/players/${token}`)] });
   joinChannel(s, getRoomChannel(room), { room });
 };
 

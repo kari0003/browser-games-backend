@@ -25,6 +25,7 @@ export function pushRoom(room: Room) {
 }
 
 export function removeRoom(id: number) {
+  console.log('deleting room');
   return db.delete(`/rooms[${id}]`);
 }
 

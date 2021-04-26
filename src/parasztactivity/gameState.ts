@@ -11,12 +11,14 @@ export type GameState = {
   roundRobinIndex: number;
   currentWord: Word | null;
   currentTurnStart: number | null;
+  previousTurnEnd: number | null;
   allWords: Word[];
   hatWords: Word[];
   settings: {
     minWordPerPlayer: number;
     maxWordPerPlayer: number;
     turnLengthSeconds: number;
+    betweenTurnSeconds: number;
   };
   scores: { [playerId: string]: number };
 };
@@ -30,12 +32,14 @@ export const initialState: GameState = {
   roundRobinIndex: 0,
   currentWord: null,
   currentTurnStart: null,
+  previousTurnEnd: null,
   allWords: [],
   hatWords: [],
   settings: {
     minWordPerPlayer: 0,
     maxWordPerPlayer: 3,
-    turnLengthSeconds: 500,
+    turnLengthSeconds: 50,
+    betweenTurnSeconds: 10,
   },
   scores: {},
 };
