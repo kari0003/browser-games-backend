@@ -1,6 +1,6 @@
 import { Server } from 'socket.io';
 import { initGameLoop } from './platform/game/gameLoop';
-import { socketHandler } from './socket.handler';
+import { socketHandlerFactory } from './socket.handler';
 
 export function createSocketServer(server: any) {
   const io = new Server(server, {
@@ -11,6 +11,6 @@ export function createSocketServer(server: any) {
     },
   });
 
-  io.on('connection', socketHandler);
+  io.on('connection', socketHandlerFactory(io));
   initGameLoop(io);
 }

@@ -85,7 +85,7 @@ export function joinNeededChannels(socket: Socket, token: string): void {
       const pId = room.players.findIndex((p) => p.id === token);
       if (pId > 0) {
         console.log('found room for handshaking player:', token, room.id);
-        joinChannel(socket, getRoomChannel(room), room);
+        joinChannel(socket, getRoomChannel(room), { room });
       }
     });
   } catch (err) {

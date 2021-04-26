@@ -31,9 +31,8 @@ export const parasztactivityLoopHandlerFactory = (roomId: number, io: Server) =>
       }
       const newState = { ...state, currentPlayer: null, currentTurnStart: null, isTurnInProgress: false };
 
-      console.log('broadcast to new');
-      const room = get<Room>(`/rooms[${state.roomId}]`);
-      io.of(getRoomChannel(room)).emit('gameState', newState);
+      broadcastGameState(io, newState);
+      console.log('newState', newState);
       return setState(newState);
     }
   }
@@ -41,6 +40,21 @@ export const parasztactivityLoopHandlerFactory = (roomId: number, io: Server) =>
     const elapsedTime = Date.now() - state.previousTurnEnd;
     const elapsedSeconds = elapsedTime / 1000;
     if (elapsedSeconds > state.settings.betweenTurnSeconds) {
+      console.log('turn begins now yaay');
+      if (state.isTurnInProgress) {
+        console.log('illegalAction', 'Turn already started!');
+        return;
+      }
+
+      const room = get<Room>(`/rooms[${state.roomId}]`);
+      state.isTurnInProgress = true;
+      state.currentTurnStart = Date.now();
+
+      state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
+      state.currentPlayer = room.players[state.roundRobinIndex].id;
+
+      broadcastGameState(io, state);
+      return setState(state);
     }
   }
 };
@@ -51,17 +65,18 @@ export const getParasztactivityState = (s: Socket, roomId: number) => {
   s.emit('gameState', { gameState });
 };
 
-export const broadcastGameState = (s: Socket, state: GameState) => {
+export const broadcastGameState = (io: Server, state: GameState) => {
   const room = getRoom(state.roomId);
-  console.log('broadcastGameState', state.roomId);
   if (!room) {
+    console.log('room Not found');
     throw new UserError('roomNotFound', 'room for game does not exist');
   }
   const gameState = toPublicState(state);
-  s.nsp.to(getRoomChannel(room)).emit('gameState', { gameState });
+  console.log('broadcastGameState', getRoomChannel(room));
+  io.to(getRoomChannel(room)).emit('gameState', gameState);
 };
 
-export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
+export const parasztactivityEventHandler = (io: Server, s: Socket, event: GameEvent) => {
   const state = { ...getState(event.roomId) };
 
   const room = get<Room>(`/rooms[${state.roomId}]`);
@@ -70,7 +85,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
   if (event.eventType === 'addWord') {
     const payload = event.payload as AddWordPayload;
     state.allWords.push({ submittedBy: payload.playerId, word: payload.word });
-    broadcastGameState(s, state);
+    broadcastGameState(io, state);
     return setState(state);
   }
 
@@ -87,7 +102,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
       console.log(index, state.hatWords);
       state.currentWord = state.hatWords[index];
       state.hatWords = state.hatWords.filter((_, id) => id !== index);
-      broadcastGameState(s, state);
+      broadcastGameState(io, state);
       s.emit('drawWordReply', { word: state.currentWord.word });
       return setState(state);
     }
@@ -100,7 +115,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
     if (state.currentWord !== null) {
       state.hatWords.push(state.currentWord);
       state.currentWord = null;
-      broadcastGameState(s, state);
+      broadcastGameState(io, state);
       s.emit('putBackWordReply', { word: null });
       return setState(state);
     }
@@ -117,7 +132,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
         state.isTurnInProgress = false;
         state.isRoundInProgress = false;
       }
-      broadcastGameState(s, state);
+      broadcastGameState(io, state);
       return setState(state);
     } else {
       console.log('Guess incorrect');
@@ -132,7 +147,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
     state.currentPlayer = null;
     state.currentTurnStart = null;
     state.currentWord = null;
-    broadcastGameState(s, state);
+    broadcastGameState(io, state);
     return setState(state);
   }
 
@@ -144,7 +159,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
       if (state.currentWord) {
         state.hatWords.push(state.currentWord);
       }
-      broadcastGameState(s, state);
+      broadcastGameState(io, state);
       return setState(state);
     }
   }
@@ -162,7 +177,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
     state.hatWords = [...state.allWords];
     state.currentPlayer = room.players[state.roundRobinIndex].id;
 
-    broadcastGameState(s, state);
+    broadcastGameState(io, state);
     return setState(state);
   }
 
@@ -178,7 +193,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
     state.currentPlayer = room.players[state.roundRobinIndex].id;
     state.previousTurnEnd = Date.now();
 
-    broadcastGameState(s, state);
+    broadcastGameState(io, state);
     return setState(state);
   }
 
@@ -192,7 +207,7 @@ export const parasztactivityEventHandler = (s: Socket, event: GameEvent) => {
     state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
     state.currentPlayer = room.players[state.roundRobinIndex].id;
 
-    broadcastGameState(s, state);
+    broadcastGameState(io, state);
     return setState(state);
   }
   // TODO replace with reducer
@@ -214,9 +229,10 @@ const toPublicState = (state: GameState) => {
     isGameStarted: state.isGameStarted,
     isRoundInProgress: state.isRoundInProgress,
     isTurnInProgress: state.isTurnInProgress,
+    previousTurnEnd: state.previousTurnEnd,
+    roundRobinIndex: state.roundRobinIndex,
     settings: state.settings,
     scores: state.scores,
     hatWordCount: getHatWordCount(state),
-    roundRobinIndex: state.roundRobinIndex,
   };
 };

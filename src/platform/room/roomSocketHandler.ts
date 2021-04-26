@@ -56,7 +56,7 @@ export const leaveRoomHandler: Handler<{ roomName: string; token: string }> = (s
   leaveChannel(s, getRoomChannel(room), {});
   broadcastRoomUpdate(s, room);
 
-  if ((newPlayerList.length = 0)) {
+  if (newPlayerList.length == 0) {
     removeRoom(room.id);
   }
 };

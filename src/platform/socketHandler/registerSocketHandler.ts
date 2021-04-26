@@ -1,4 +1,4 @@
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
 export type Handler<Payload> = (socket: Socket, payload: Payload) => void;
 

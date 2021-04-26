@@ -4,6 +4,7 @@ import {
   parasztactivityEventHandler,
   parasztactivityInitializer,
 } from '../../parasztactivity/eventHandler';
+import { Server } from 'socket.io';
 
 export interface GameEvent {
   game: string;
@@ -12,9 +13,9 @@ export interface GameEvent {
   payload: unknown;
 }
 
-export const gameEventHandler: Handler<{ gameEvent: GameEvent }> = (s, { gameEvent }) => {
+export const gameEventHandlerFactory = (io: Server): Handler<{ gameEvent: GameEvent }> => (s, { gameEvent }) => {
   if (gameEvent.game === 'parasztactivity') {
-    return parasztactivityEventHandler(s, gameEvent);
+    return parasztactivityEventHandler(io, s, gameEvent);
   }
 
   console.log('could not find game for event:', gameEvent);
