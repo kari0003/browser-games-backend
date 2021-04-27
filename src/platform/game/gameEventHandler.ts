@@ -3,8 +3,10 @@ import {
   getParasztactivityState,
   parasztactivityEventHandler,
   parasztactivityInitializer,
+  parasztactivityLoopHandlerFactory,
 } from '../../parasztactivity/eventHandler';
 import { Server } from 'socket.io';
+import { GameLoop } from './gameLoop';
 
 export interface GameEvent {
   game: string;
@@ -22,9 +24,14 @@ export const gameEventHandlerFactory = (io: Server): Handler<{ gameEvent: GameEv
   throw new UserError('gameNotFound', 'Could not find the game you try to interact with!');
 };
 
-export const initGameHandler: Handler<{ game: string; roomId: number }> = (s, { game, roomId }) => {
+export const initGameHandlerFactory = (io: Server, gameLoop: GameLoop): Handler<{ game: string; roomId: number }> => (
+  s,
+  { game, roomId },
+) => {
   if (game === 'parasztactivity') {
-    return parasztactivityInitializer(s, { roomId });
+    parasztactivityInitializer(s, { roomId });
+    gameLoop.register(`${roomId}`, parasztactivityLoopHandlerFactory(roomId, io));
+    return;
   }
   console.log('could not find game type:', roomId, game);
   throw new UserError('gameTypeNotFound', 'Could not find the game type!');

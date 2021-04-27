@@ -22,14 +22,18 @@ export const parasztactivityLoopHandlerFactory = (roomId: number, io: Server) =>
     if (elapsedSeconds > state.settings.turnLengthSeconds) {
       console.log('turn over, elapsed:', elapsedSeconds, state.settings.turnLengthSeconds);
 
-      state.currentPlayer = null;
-      state.currentTurnStart = null;
-      state.isTurnInProgress = false;
       state.previousTurnEnd = Date.now();
       if (state.currentWord) {
         state.hatWords = [...state.hatWords, state.currentWord];
       }
-      const newState = { ...state, currentPlayer: null, currentTurnStart: null, isTurnInProgress: false };
+      const newState = {
+        ...state,
+        currentPlayer: null,
+        currentTurnStart: null,
+        currentWord: null,
+        isTurnInProgress: false,
+        previousTurnEnd: Date.now(),
+      };
 
       broadcastGameState(io, newState);
       console.log('newState', newState);
@@ -50,7 +54,8 @@ export const parasztactivityLoopHandlerFactory = (roomId: number, io: Server) =>
       state.isTurnInProgress = true;
       state.currentTurnStart = Date.now();
 
-      state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
+      const newIndex = state.roundRobinIndex + 1;
+      state.roundRobinIndex = newIndex >= room.players.length ? 0 : newIndex;
       state.currentPlayer = room.players[state.roundRobinIndex].id;
 
       broadcastGameState(io, state);
@@ -73,7 +78,7 @@ export const broadcastGameState = (io: Server, state: GameState) => {
   }
   const gameState = toPublicState(state);
   console.log('broadcastGameState', getRoomChannel(room));
-  io.to(getRoomChannel(room)).emit('gameState', gameState);
+  io.to(getRoomChannel(room)).emit('gameState', { gameState });
 };
 
 export const parasztactivityEventHandler = (io: Server, s: Socket, event: GameEvent) => {
@@ -189,7 +194,8 @@ export const parasztactivityEventHandler = (io: Server, s: Socket, event: GameEv
     state.isTurnInProgress = false;
     state.hatWords = [...state.allWords];
 
-    state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
+    const newIndex = state.roundRobinIndex + 1;
+    state.roundRobinIndex = newIndex >= room.players.length ? 0 : newIndex;
     state.currentPlayer = room.players[state.roundRobinIndex].id;
     state.previousTurnEnd = Date.now();
 
@@ -204,7 +210,8 @@ export const parasztactivityEventHandler = (io: Server, s: Socket, event: GameEv
     state.isTurnInProgress = true;
     state.currentTurnStart = Date.now();
 
-    state.roundRobinIndex = (state.roundRobinIndex + 1) % room.players.length;
+    const newIndex = state.roundRobinIndex + 1;
+    state.roundRobinIndex = newIndex >= room.players.length ? 0 : newIndex;
     state.currentPlayer = room.players[state.roundRobinIndex].id;
 
     broadcastGameState(io, state);
@@ -234,5 +241,6 @@ const toPublicState = (state: GameState) => {
     settings: state.settings,
     scores: state.scores,
     hatWordCount: getHatWordCount(state),
+    isCurrentWordDrawn: !!state.currentWord,
   };
 };

@@ -4,20 +4,30 @@ import { Server } from 'socket.io';
 import { parasztactivityLoopHandlerFactory } from '../../parasztactivity/eventHandler';
 
 export type GameLoop = {
-  register(gameHanlder: () => void): void;
+  register(id: string, gameHanlder: () => void): void;
+  remove(id: string): void;
   stop(): void;
 };
 
 export const gameLoopFactory = (timeout: number = 1000): GameLoop => {
-  const handlers: (() => void)[] = [];
+  const handlers: Record<string, () => void> = {};
 
   const loop = setInterval(() => {
-    handlers.map((handler) => handler());
+    Object.values(handlers).forEach((handler) => handler());
   }, timeout);
 
   return {
-    register: (handler: () => void) => {
-      handlers.push(handler);
+    register: (id: string, handler: () => void) => {
+      if (handlers[id]) {
+        console.log('WARNING OVERWRITING HANDLER');
+      }
+      handlers[id] = handler;
+    },
+    remove: (id: string) => {
+      if (!handlers[id]) {
+        console.log('WARNING GAMELOOP NOT FOUND');
+      }
+      delete handlers[id];
     },
     stop: () => {
       clearInterval(loop);
@@ -30,7 +40,7 @@ export const initGameLoop = (io: Server): GameLoop => {
   const games = get<Record<string, GameState>>(`/games`); // TODO parasztactivity specific
   Object.keys(games).map(([roomId]) => {
     console.log('registering loophandler to ', roomId);
-    gameLoop.register(parasztactivityLoopHandlerFactory(Number.parseInt(roomId), io));
+    gameLoop.register(roomId, parasztactivityLoopHandlerFactory(Number.parseInt(roomId), io));
   });
   return gameLoop;
 };

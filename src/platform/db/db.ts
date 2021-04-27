@@ -26,7 +26,11 @@ export function pushRoom(room: Room) {
 
 export function removeRoom(id: number) {
   console.log('deleting room');
-  db.delete(`/games/${id}`);
+  try {
+    db.delete(`/games/${id}`);
+  } catch (error) {
+    console.log('could not delete game', error);
+  }
   return db.delete(`/rooms[${id}]`);
 }
 

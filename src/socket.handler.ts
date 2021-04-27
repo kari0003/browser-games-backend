@@ -4,7 +4,7 @@ import { registerSocketHandlerFactory } from './platform/socketHandler/registerS
 import {
   createRoomHandler,
   joinRoomHandler,
-  leaveRoomHandler,
+  leaveRoomHandlerFactory,
   getRoomChannel,
 } from './platform/room/roomSocketHandler';
 import {
@@ -13,8 +13,9 @@ import {
   removePlayerSocket,
   handshakeHandler,
 } from './platform/player/playerSocketHandler';
-import { gameEventHandlerFactory, getGameStateHandler, initGameHandler } from './platform/game/gameEventHandler';
+import { gameEventHandlerFactory, getGameStateHandler, initGameHandlerFactory } from './platform/game/gameEventHandler';
 import { Room } from './platform/room/room';
+import { GameLoop } from './platform/game/gameLoop';
 
 export function joinChannel(socket: Socket, channel: string, replyPayload: { room: Room }) {
   console.log(`joined s ${socket.id} to ${channel}`);
@@ -28,7 +29,7 @@ export function leaveChannel(socket: Socket, channel: string, replyPayload: unkn
   socket.emit('leaveChannelReply', replyPayload);
 }
 
-export const socketHandlerFactory = (io: Server) => (socket: Socket) => {
+export const socketHandlerFactory = (io: Server, gameLoop: GameLoop) => (socket: Socket) => {
   console.log('received connection', socket.id);
   const s = socket;
 
@@ -45,10 +46,10 @@ export const socketHandlerFactory = (io: Server) => (socket: Socket) => {
   register('getProfile', getPlayerHandler);
 
   register('createRoom', createRoomHandler);
-  register('leaveRoom', leaveRoomHandler);
+  register('leaveRoom', leaveRoomHandlerFactory(gameLoop));
   register('joinRoom', joinRoomHandler);
 
-  register('initGame', initGameHandler);
+  register('initGame', initGameHandlerFactory(io, gameLoop));
   register('gameEvent', gameEventHandlerFactory(io));
   register('getGameState', getGameStateHandler);
 

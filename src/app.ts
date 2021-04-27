@@ -11,6 +11,6 @@ export function createSocketServer(server: any) {
     },
   });
 
-  io.on('connection', socketHandlerFactory(io));
-  initGameLoop(io);
+  const gameLoop = initGameLoop(io);
+  io.on('connection', socketHandlerFactory(io, gameLoop));
 }

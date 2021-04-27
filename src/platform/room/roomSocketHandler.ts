@@ -1,6 +1,7 @@
 import { Socket } from 'socket.io';
 import { joinChannel, leaveChannel } from '../../socket.handler';
 import { get, getRoomByName, getRooms, pushRoom, removeRoom, set } from '../db/db';
+import { GameLoop } from '../game/gameLoop';
 import { Handler, UserError } from '../socketHandler/registerSocketHandler';
 import { Room, RoomStatus } from './room';
 
@@ -46,7 +47,10 @@ export const createRoomHandler: Handler<{ roomName: string; token: string }> = (
   joinChannel(s, getRoomChannel(room), { room });
 };
 
-export const leaveRoomHandler: Handler<{ roomName: string; token: string }> = (s, { roomName, token }) => {
+export const leaveRoomHandlerFactory = (gameLoop: GameLoop): Handler<{ roomName: string; token: string }> => (
+  s,
+  { roomName, token },
+) => {
   const room = findRoom(roomName);
 
   const newPlayerList = [...room.players.filter((p) => p.id !== token)];
@@ -58,6 +62,7 @@ export const leaveRoomHandler: Handler<{ roomName: string; token: string }> = (s
 
   if (newPlayerList.length == 0) {
     removeRoom(room.id);
+    gameLoop.remove(`${room.id}`);
   }
 };
 

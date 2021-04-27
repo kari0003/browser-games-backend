@@ -37,7 +37,7 @@ export const removePlayerSocket = (socketId: string): void => {
   set(`/players/${token}`, { ...foundPlayer, sockets: newSocketIds });
 };
 
-export const registerPlayerAndSocket = (socketId: string, token: string | undefined) => {
+export const registerPlayerAndSocket = (socketId: string, token?: string, name?: string) => {
   const newToken = token || v4().slice(0, 8);
   try {
     const existingPlayer = get<Player>(`/players/${newToken}`);
@@ -51,7 +51,7 @@ export const registerPlayerAndSocket = (socketId: string, token: string | undefi
   } catch (err) {
     console.log('cannot find player by token');
   }
-  db.push(`/players/${newToken}`, { name: 'Átlagos Józsi', id: newToken, sockets: [socketId] });
+  db.push(`/players/${newToken}`, { name: name || 'Alap Játékos', id: newToken, sockets: [socketId] });
   console.log(`registered new socket ${socketId} and new player with: ${newToken}`);
   return newToken;
 };
@@ -93,10 +93,10 @@ export function joinNeededChannels(socket: Socket, token: string): void {
   }
 }
 
-export const handshakeHandler: Handler<{ token?: string }> = (s, { token }) => {
+export const handshakeHandler: Handler<{ token?: string; name?: string }> = (s, { token, name }) => {
   console.log('handshaking', s.id);
   const socketId = s.id;
-  const responseToken = registerPlayerAndSocket(socketId, token);
+  const responseToken = registerPlayerAndSocket(socketId, token, name);
   joinNeededChannels(s, responseToken);
   s.emit('handshakeReply', { token: responseToken });
 };
