@@ -9,7 +9,7 @@ import { AddWordPayload, GuessWordPayload, StartTurnPayload } from './gameEvents
 import { GameState, getState, initialState, setState } from './gameState';
 
 export const parasztactivityInitializer = (s: Socket, { roomId }: { roomId: number }) => {
-  const state = { ...initialState };
+  const state = { ...initialState, allWords: [], hatWords: [], settings: { ...initialState.settings } };
   state.roomId = roomId;
   return setState(state);
 };
