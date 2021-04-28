@@ -1,5 +1,7 @@
 import { Server } from 'socket.io';
 import { initGameLoop } from './platform/game/gameLoop';
+import { checkDisconnectedPlayers } from './platform/player/checkDisconnectedPlayers';
+import { checkGhostRooms } from './platform/room/checkGhostRooms';
 import { socketHandlerFactory } from './socket.handler';
 
 export function createSocketServer(server: any) {
@@ -13,4 +15,8 @@ export function createSocketServer(server: any) {
 
   const gameLoop = initGameLoop(io);
   io.on('connection', socketHandlerFactory(io, gameLoop));
+  setInterval(() => {
+    checkDisconnectedPlayers(io);
+    checkGhostRooms(gameLoop);
+  }, 10000);
 }

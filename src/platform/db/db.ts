@@ -1,6 +1,7 @@
 import { Room } from '../room/room';
 import { JsonDB } from 'node-json-db';
 import { config } from '../../config';
+import { GameLoop } from '../game/gameLoop';
 
 export const db = new JsonDB(config.dbPath, true, true);
 
@@ -24,10 +25,11 @@ export function pushRoom(room: Room) {
   return db.push('/rooms[]', room, true);
 }
 
-export function removeRoom(id: number) {
-  console.log('deleting room');
+export function removeRoom(id: number, gameLoop: GameLoop) {
+  console.log('deleting room', id);
   try {
     db.delete(`/games/${id}`);
+    gameLoop.remove(`${id}`);
   } catch (error) {
     console.log('could not delete game', error);
   }
