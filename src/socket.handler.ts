@@ -66,6 +66,16 @@ export const socketHandlerFactory = (io: Server, gameLoop: GameLoop) => (socket:
     s.nsp.to(getRoomChannel(room)).emit('chatMessageOut', payload.chatMessage);
   });
 
+  s.on('drawDot', (payload) => {
+    s.broadcast.emit('drawDot', payload);
+  });
+  s.on('drawLine', (payload) => {
+    s.broadcast.emit('drawLine', payload);
+  });
+  s.on('clear', (payload) => {
+    s.broadcast.emit('clear', payload);
+  });
+
   s.on('listRooms', () => {
     const rooms = getRooms();
     s.emit('listRoomsReply', rooms);
