@@ -7,7 +7,6 @@ export const isPlayerConnected = (io: Server, player: Player): boolean => {
     const socket = io.sockets.sockets.get(socketId);
     return acc || !!socket?.connected;
   }, false);
-  console.log('player', player.id, 'isConnected', isConnected);
   return isConnected;
 };
 
