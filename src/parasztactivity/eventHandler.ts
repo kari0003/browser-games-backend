@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import { messageSenderFactory } from '../platform/chat/chat';
 import { getRoom, get } from '../platform/db/db';
 import { GameEvent } from '../platform/game/gameEventHandler';
 import { findPlayerBySocket } from '../platform/player/playerSocketHandler';
@@ -84,6 +85,8 @@ export const broadcastGameState = (io: Server, state: GameState) => {
 export const parasztactivityEventHandler = (io: Server, s: Socket, event: GameEvent) => {
   const state = { ...getState(event.roomId) };
 
+  const messageSender = messageSenderFactory(io);
+
   const room = get<Room>(`/rooms[${state.roomId}]`);
   const player = findPlayerBySocket(s.id);
 
@@ -130,6 +133,12 @@ export const parasztactivityEventHandler = (io: Server, s: Socket, event: GameEv
     const payload = event.payload as GuessWordPayload;
     if (state.currentWord && state.currentWord.word === payload.guess) {
       console.log('Guess correct!');
+      const player = room.players.find((p) => p.id === payload.playerId);
+      messageSender(room.name, {
+        name: 'System',
+        message: `Correct Guess "${state.currentWord.word}" by ${player?.name || 'undefined'}`,
+        type: 'system',
+      });
       state.currentWord = null;
       state.scores[payload.playerId] = 1 + (state.scores[payload.playerId] || 0);
       if (state.hatWords.length === 0) {

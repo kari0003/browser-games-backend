@@ -14,6 +14,7 @@ import {
   handshakeHandler,
 } from './platform/player/playerSocketHandler';
 import { gameEventHandlerFactory, getGameStateHandler, initGameHandlerFactory } from './platform/game/gameEventHandler';
+import { chatMessageHandlerFactory } from './platform/chat/chatHandler';
 import { Room } from './platform/room/room';
 import { GameLoop } from './platform/game/gameLoop';
 
@@ -53,18 +54,7 @@ export const socketHandlerFactory = (io: Server, gameLoop: GameLoop) => (socket:
   register('gameEvent', gameEventHandlerFactory(io));
   register('getGameState', getGameStateHandler);
 
-  s.on('chatMessage', (payload: { roomName: string; chatMessage: { name: string; message: string } }) => {
-    const room = getRoomByName(payload.roomName);
-    if (!room) {
-      console.log('couldnt find room', payload);
-      s.emit('roomNotFound', `No such room with id ${payload.roomName}`);
-      return;
-    }
-
-    set(`/rooms/${room.id}/messages`, [...room.messages, payload.chatMessage]);
-
-    s.nsp.to(getRoomChannel(room)).emit('chatMessageOut', payload.chatMessage);
-  });
+  register('chatMessage', chatMessageHandlerFactory(io));
 
   s.on('drawDot', (payload) => {
     s.broadcast.emit('drawDot', payload);

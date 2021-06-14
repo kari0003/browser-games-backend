@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 import { joinChannel, leaveChannel } from '../../socket.handler';
 import { get, getRoomByName, getRooms, pushRoom, removeRoom, set } from '../db/db';
-import { GameLoop, gameLoopFactory } from '../game/gameLoop';
+import { GameLoop } from '../game/gameLoop';
 import { Handler, UserError } from '../socketHandler/registerSocketHandler';
 import { Room, RoomStatus } from './room';
 
